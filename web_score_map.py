@@ -151,6 +151,7 @@ page = st.sidebar.radio("Navigation", ["About",
                                         "Custom Variable Average",
                                         "Weighted Score Map (Profitability vs. Environment)"])
 if page == "About":
+    print("🔍 当前 map_df 的列名：", map_df.columns.tolist())
     st.title("About this Dashboard")
     st.markdown("""
     Welcome to the **Data Center Environmental Suitability Dashboard**.
