@@ -151,7 +151,8 @@ def load_data():
         raise FileNotFoundError("没有找到 .shp 文件")
 
     # === 3. 用 geopandas 读取 ===
-    counties = gpd.read_file(shp_file)
+    counties = gpd.read_file(shp_file, engine="fiona")
+
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
 
     score_df = pd.read_csv("data/MERGED.csv")
