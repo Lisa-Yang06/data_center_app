@@ -7,6 +7,8 @@ from folium.features import GeoJsonTooltip
 import branca.colormap as cm
 import sys
 import os
+import zipfile
+
 
 state_name_to_fips = {
     "Alabama": "01",
