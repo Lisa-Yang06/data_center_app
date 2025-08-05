@@ -134,16 +134,19 @@ def load_data():
 
     if not os.path.exists(extract_dir):
         os.makedirs(extract_dir)
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
 
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_dir)
-
-    # === 2. 找到 .shp 文件路径 ===
+    # === 2. 递归查找 .shp 文件 ===
     shp_file = None
-    for file in os.listdir(extract_dir):
-        if file.endswith(".shp"):
-            shp_file = os.path.join(extract_dir, file)
+    for root, dirs, files in os.walk(extract_dir):
+        for file in files:
+            if file.endswith(".shp"):
+                shp_file = os.path.join(root, file)
+                break
+        if shp_file:
             break
+
     if not shp_file:
         raise FileNotFoundError("没有找到 .shp 文件")
 
