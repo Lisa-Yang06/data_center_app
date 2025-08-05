@@ -125,11 +125,11 @@ st.title("🗺️ Interactive County-Level Environmental Friendliness Map")
 # 读取数据函数
 @st.cache_data
 def load_data():
-    counties = gpd.read_file("/Users/yuxuanyang/Library/CloudStorage/OneDrive-Emory/AI.X/us_map/tl_2024_us_county/tl_2024_us_county.shp")
+    counties = gpd.read_file("data/tl_2024_us_county.zip")
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
     counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
-    score_df = pd.read_csv("/Users/yuxuanyang/Library/CloudStorage/OneDrive-Emory/AI.X/env_RESULTS/data/MERGED.csv")
+    score_df = pd.read_csv("data/MERGED.csv")
     score_df["GEOID"] = score_df["GEOID"].astype(str).str.zfill(5)
 
     merged = counties.merge(score_df, on="GEOID", how="left")
@@ -402,11 +402,11 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
     # === 读取两个模型预测的分数 ===
     @st.cache_data
     def load_weighted_data():
-        env_df = pd.read_csv("/Users/yuxuanyang/Library/CloudStorage/OneDrive-Emory/AI.X/RF_all_GEOID_scores.csv")
+        env_df = pd.read_csv("data/RF_all_GEOID_scores.csv")
         env_df.rename(columns={"env_score": "env_score"}, inplace=True)
         env_df["GEOID"] = env_df["GEOID"].astype(str).str.zfill(5)
 
-        prof_df = pd.read_csv("/Users/yuxuanyang/Library/CloudStorage/OneDrive-Emory/AI.X/RF_predicted_profitability.csv")
+        prof_df = pd.read_csv("data/RF_predicted_profitability.csv")
         prof_df.rename(columns={"predicted_profitability": "prof_score"}, inplace=True)
         prof_df["GEOID"] = prof_df["GEOID"].astype(str).str.zfill(5)
 
