@@ -6,6 +6,7 @@ from streamlit_folium import st_folium
 from folium.features import GeoJsonTooltip
 import branca.colormap as cm
 import sys
+import os
 
 state_name_to_fips = {
     "Alabama": "01",
