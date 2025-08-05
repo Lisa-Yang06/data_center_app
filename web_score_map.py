@@ -125,7 +125,8 @@ st.title("🗺️ Interactive County-Level Environmental Friendliness Map")
 # 读取数据函数
 @st.cache_data
 def load_data():
-    counties = gpd.read_file("data/tl_2024_us_county.zip")
+    counties = gpd.read_file("data/tl_2024_us_county.zip", engine="fiona")
+
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
     counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
