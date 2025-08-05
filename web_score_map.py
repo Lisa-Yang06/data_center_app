@@ -125,16 +125,35 @@ st.title("🗺️ Interactive County-Level Environmental Friendliness Map")
 # 读取数据函数
 @st.cache_data
 def load_data():
-    counties = gpd.read_file("data/tl_2024_us_county.zip", engine="fiona")
+    # === 1. 解压 zip 文件到临时目录 ===
+    zip_path = "data/tl_2024_us_county.zip"
+    extract_dir = "data/shapefile_extracted"
 
+    if not os.path.exists(extract_dir):
+        os.makedirs(extract_dir)
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_dir)
+
+    # === 2. 找到 .shp 文件路径 ===
+    shp_file = None
+    for file in os.listdir(extract_dir):
+        if file.endswith(".shp"):
+            shp_file = os.path.join(extract_dir, file)
+            break
+    if not shp_file:
+        raise FileNotFoundError("没有找到 .shp 文件")
+
+    # === 3. 用 geopandas 读取 ===
+    counties = gpd.read_file(shp_file)
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
-    counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
     score_df = pd.read_csv("data/MERGED.csv")
     score_df["GEOID"] = score_df["GEOID"].astype(str).str.zfill(5)
 
     merged = counties.merge(score_df, on="GEOID", how="left")
     merged["geometry"] = merged["geometry"].simplify(tolerance=0.01, preserve_topology=True)
+
     return merged
 
 # 加载合并数据
