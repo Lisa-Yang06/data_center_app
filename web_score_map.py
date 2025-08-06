@@ -361,14 +361,19 @@ elif page == "Custom Variable Average":
 
     numeric_cols = list(ui_var_dict.keys())
     available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
-    available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
+    display_names = (
+    available_counties["display_name"]
+    .fillna("Unknown County, Unknown State")
+    .astype(str)
+    .tolist()
+    )
 
     # ⬆️ 放到顶部的两栏
     col1, col2 = st.columns([2, 2])
     with col1:
         selected_keys = st.multiselect("📊 Select variables to calculate average", numeric_cols)
     with col2:
-        selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist()), key="highlight_customized")
+        selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(display_names), key="highlight_customized")
 
     generate = st.button("Generate Customized Map")
     reset = st.button("Reset Map")
@@ -493,8 +498,14 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
     # 高亮选中县
     available_counties = map_weight[map_weight["weighted_score"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
+    display_names = (
+    available_counties["display_name"]
+    .fillna("Unknown County, Unknown State")
+    .astype(str)
+    .tolist()
+    )
 
-    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist), key="highlight_weighted")
+    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(display_names), key="highlight_weighted")
 
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
