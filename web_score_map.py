@@ -361,6 +361,7 @@ elif page == "Custom Variable Average":
 
     numeric_cols = list(ui_var_dict.keys())
     available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
+    available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
     display_names = (
     available_counties["display_name"]
     .fillna("Unknown County, Unknown State")
