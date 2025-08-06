@@ -121,19 +121,18 @@ fips_to_state_abbr = {
 }
 
 
-# 页面配置
+
 st.set_page_config(page_title="Core Variable Score Map", layout="wide")
 st.title("🗺️ Interactive County-Level Environmental Friendliness Map")
 
-# 读取数据函数
+
 @st.cache_data
 def load_data():
-    # === 1. 读取 .geojson 文件（简化版地图） ===
+
     counties = gpd.read_file("data/tl_2024_us_county_light.geojson")
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
     counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
-    # === 2. 补上 NAME（县名） ===
     fips_df = pd.read_csv(
     "data/county_geoid.txt",
     header=None,
@@ -147,19 +146,16 @@ def load_data():
 
     counties = counties.merge(fips_df, on="GEOID", how="left")
 
-    # === 3. 读取打分数据并合并 ===
     score_df = pd.read_csv("data/MERGED.csv")
     score_df["GEOID"] = score_df["GEOID"].astype(str).str.zfill(5)
     
     merged = counties.merge(score_df, on="GEOID", how="left")
 
-    # === 4. 几何简化（用于绘图提速） ===
     merged["geometry"] = merged["geometry"].simplify(tolerance=0.01, preserve_topology=True)
 
     return merged
 
 
-# 加载合并数据
 map_df = load_data()
 
 page = st.sidebar.radio("Navigation", ["About",
@@ -190,23 +186,19 @@ if page == "About":
     - Tune the weight between environment and profitability scores (Random Forest-predicted) — and watch the map adapt in real time!""")
 
 if page == "Map by Overall Score":
-    # 创建 Folium 地图
     m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
 
-    # 定义颜色渐变（绿色系）
     score_min, score_max = map_df["SUM"].min(), map_df["SUM"].max()
     colormap = cm.linear.YlGn_09.scale(score_min, score_max)
     colormap.caption = "Overall Score"
     colormap.add_to(m)
 
-    # 设置 tooltip
     tooltip = GeoJsonTooltip(
         fields=["NAME", "STATE", "SUM"],
         aliases=["County", "State", "Score"],
         localize=True
     )
 
-    # 添加 GeoJson 图层，颜色渐变按 SUM 值填充
     folium.GeoJson(
         map_df,
         name="Overall Score",
@@ -219,7 +211,6 @@ if page == "Map by Overall Score":
         }
     ).add_to(m)
 
-    # 防止拼接时报错：确保 NAME 和 STATE 都是字符串并填补 NaN
     available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = (
         available_counties["NAME"].fillna("Unknown County").astype(str) +
@@ -237,7 +228,6 @@ if page == "Map by Overall Score":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
         highlight_geo = map_df[map_df["GEOID"] == selected_geoid]
 
-        # 添加红色边界图层
         folium.GeoJson(
             highlight_geo,
             name="Highlighted County",
@@ -254,10 +244,8 @@ if page == "Map by Overall Score":
             )
         ).add_to(m)
 
-    # 展示地图
     st_data = st_folium(m, width=1000, height=650)
 
-    # 点击显示详情
     if st_data and st_data.get("last_active_drawing"):
         props = st_data["last_active_drawing"]["properties"]
         st.subheader(f"📍 {props['NAME']}, {props['STATE']}")
@@ -294,7 +282,6 @@ elif page == "Map by Four Core Variables Score":
         }
     ).add_to(m)
 
-        # 🔍 添加可选县用于高亮显示
     available_counties = map_df[map_df["four_SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
     
@@ -311,7 +298,6 @@ elif page == "Map by Four Core Variables Score":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
         highlight_geo = map_df[map_df["GEOID"] == selected_geoid]
 
-        # 添加红色边界图层
         folium.GeoJson(
             highlight_geo,
             name="Highlighted County",
@@ -370,7 +356,6 @@ elif page == "Custom Variable Average":
     .tolist()
     )
 
-    # ⬆️ 放到顶部的两栏
     col1, col2 = st.columns([2, 2])
     with col1:
         selected_keys = st.multiselect("📊 Select variables to calculate average", numeric_cols)
@@ -424,7 +409,6 @@ elif page == "Custom Variable Average":
     st_data = st_folium(m, width=1000, height=650)
         
 
-    # ➕ 高亮县的边界
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
         highlight_geo = map_df[map_df["GEOID"] == selected_geoid]
@@ -455,7 +439,6 @@ elif page == "Custom Variable Average":
 
 
 elif page == "Weighted Score Map (Profitability vs. Environment)":
-    # === 读取两个模型预测的分数 ===
     @st.cache_data
     def load_weighted_data():
         env_df = pd.read_csv("data/RF_all_GEOID_scores.csv")
@@ -476,10 +459,8 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
         
     score_df = load_weighted_data()
 
-    # 合并到原始地图 dataframe
     map_weight = map_df.merge(score_df, on="GEOID", how="left")
-
-    # 滑块选择权重
+    
     env_weight = st.slider("🧮 Environmental Weight (Profitability = 1 - Environmental)", min_value=0.0, max_value=1.0, value=st.session_state.env_weight, step=0.01)
     if env_weight != st.session_state.env_weight:
         st.session_state.env_weight = env_weight
@@ -487,24 +468,20 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
     
     map_weight["weighted_score"] = env_weight * map_weight["env_score"] + (1 - env_weight) * map_weight["prof_score"]
 
-    # 绘制地图
     m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
 
-    # 设置颜色映射
     score_min = map_weight["weighted_score"].min()
     score_max = map_weight["weighted_score"].max()
     colormap = cm.linear.YlGnBu_09.scale(score_min, score_max)
     colormap.caption = "Weighted Score"
     colormap.add_to(m)
 
-    # Tooltip
     tooltip = GeoJsonTooltip(
         fields=["NAME", "STATE", "weighted_score"],
         aliases=["County", "State", "Weighted Score"],
         localize=True
     )
 
-    # 添加 GeoJSON 图层
     folium.GeoJson(
         map_weight,
         name="Weighted Score",
@@ -517,7 +494,6 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
         }
     ).add_to(m)
 
-    # 高亮选中县
     available_counties = map_weight[map_weight["weighted_score"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
     display_names = (
@@ -550,8 +526,7 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
         ).add_to(m)
 
     st_data = st_folium(m, width=1000, height=650)
-
-    # 显示点击县的详细信息
+    
     if st_data and st_data.get("last_active_drawing"):
         props = st_data["last_active_drawing"]["properties"]
         st.subheader(f"📍 {props['NAME']}, {props['STATE']}")
