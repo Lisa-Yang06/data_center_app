@@ -143,7 +143,7 @@ def load_data():
 
     fips_df["GEOID"] = fips_df["STATEFP"] + fips_df["COUNTYFP"]
     fips_df = fips_df[["GEOID", "COUNTYNAME"]].rename(columns={"COUNTYNAME": "NAME"})
-    fips_df["NAME"] = fips_df["NAME"].str.replace(r"\s.*", "", regex=True)
+    fips_df["NAME"] = fips_df["NAME"].str.replace(r"\s[^ ]*$", "", regex=True)
 
     counties = counties.merge(fips_df, on="GEOID", how="left")
 
