@@ -134,7 +134,13 @@ def load_data():
     counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
     # === 2. 补上 NAME（县名） ===
-    fips_df = pd.read_csv("data/county_geoid.txt", dtype={"STATEFP": str, "COUNTYFP": str})
+    fips_df = pd.read_csv(
+    "data/county_geoid.txt",
+    header=None,
+    names=["STATE_ABBR", "STATEFP", "COUNTYFP", "COUNTYNAME", "CLASS"],
+    dtype={"STATEFP": str, "COUNTYFP": str}
+)
+
     fips_df["GEOID"] = fips_df["STATEFP"] + fips_df["COUNTYFP"]
     fips_df = fips_df[["GEOID", "COUNTYNAME"]].rename(columns={"COUNTYNAME": "NAME"})
 
