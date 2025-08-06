@@ -218,11 +218,18 @@ if page == "Map by Overall Score":
         }
     ).add_to(m)
 
-    # 🔍 添加可选县用于高亮显示
-    available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
-    available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
-
-    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"]), key = "highlight_overall")
+    # 防止拼接时报错：确保 NAME 和 STATE 都是字符串并填补 NaN
+    available_counties["display_name"] = (
+        available_counties["NAME"].fillna("Unknown County").astype(str) +
+        ", " +
+        available_counties["STATE"].fillna("Unknown State").astype(str)
+    )
+    
+    selected_county = st.selectbox(
+        "🔍 Highlight a County",
+        ["None"] + sorted(available_counties["display_name"]),
+        key="highlight_overall"
+    )
 
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
