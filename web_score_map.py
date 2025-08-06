@@ -219,6 +219,7 @@ if page == "Map by Overall Score":
     ).add_to(m)
 
     # 防止拼接时报错：确保 NAME 和 STATE 都是字符串并填补 NaN
+    available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = (
         available_counties["NAME"].fillna("Unknown County").astype(str) +
         ", " +
@@ -293,7 +294,7 @@ elif page == "Map by Four Core Variables Score":
     ).add_to(m)
 
         # 🔍 添加可选县用于高亮显示
-    available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
+    available_counties = map_df[map_df["four_SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
 
     selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist()), key = "highlight_4_core")
