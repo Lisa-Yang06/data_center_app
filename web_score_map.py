@@ -128,19 +128,29 @@ st.title("🗺️ Interactive County-Level Environmental Friendliness Map")
 # 读取数据函数
 @st.cache_data
 def load_data():
-    # === 读取 .geojson 文件（简化版地图） ===
+    # === 1. 读取 .geojson 文件（简化版地图） ===
     counties = gpd.read_file("data/tl_2024_us_county_light.geojson")
-
     counties["GEOID"] = counties["GEOID"].astype(str).str.zfill(5)
     counties["STATE"] = counties["STATEFP"].map(fips_to_state_abbr)
 
-    # === 读取你的打分数据 ===
+    # === 2. 补上 NAME（县名） ===
+    fips_df = pd.read_csv("data/county_fips.csv", dtype={"STATEFP": str, "COUNTYFP": str})
+    fips_df["GEOID"] = fips_df["STATEFP"] + fips_df["COUNTYFP"]
+    fips_df = fips_df[["GEOID", "COUNTYNAME"]].rename(columns={"COUNTYNAME": "NAME"})
+
+    counties = counties.merge(fips_df, on="GEOID", how="left")
+
+    # === 3. 读取打分数据并合并 ===
     score_df = pd.read_csv("data/MERGED.csv")
     score_df["GEOID"] = score_df["GEOID"].astype(str).str.zfill(5)
-
+    
     merged = counties.merge(score_df, on="GEOID", how="left")
+
+    # === 4. 几何简化（用于绘图提速） ===
     merged["geometry"] = merged["geometry"].simplify(tolerance=0.01, preserve_topology=True)
+
     return merged
+
 
 # 加载合并数据
 map_df = load_data()
@@ -151,7 +161,6 @@ page = st.sidebar.radio("Navigation", ["About",
                                         "Custom Variable Average",
                                         "Weighted Score Map (Profitability vs. Environment)"])
 if page == "About":
-    print("🔍 当前 map_df 的列名：", map_df.columns.tolist())
     st.title("About this Dashboard")
     st.markdown("""
     Welcome to the **Data Center Environmental Suitability Dashboard**.
