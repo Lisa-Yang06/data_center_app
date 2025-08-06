@@ -424,34 +424,34 @@ elif page == "Custom Variable Average":
     st_data = st_folium(m, width=1000, height=650)
         
 
-        # ➕ 高亮县的边界
-        if selected_county != "None":
-            selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
-            highlight_geo = map_df[map_df["GEOID"] == selected_geoid]
+    # ➕ 高亮县的边界
+    if selected_county != "None":
+        selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
+        highlight_geo = map_df[map_df["GEOID"] == selected_geoid]
 
-            folium.GeoJson(
-                highlight_geo,
-                name="Highlighted County",
-                style_function=lambda feature: {
-                    "fillColor": "none",
-                    "color": "red",
-                    "weight": 1.5,
-                    "fillOpacity": 0,
-                },
-                tooltip=GeoJsonTooltip(
-                    fields=["NAME", "STATE"],
-                    aliases=["County", "State"],
-                    localize=True
-                )
-            ).add_to(m)
+        folium.GeoJson(
+            highlight_geo,
+            name="Highlighted County",
+            style_function=lambda feature: {
+                "fillColor": "none",
+                "color": "red",
+                "weight": 1.5,
+                "fillOpacity": 0,
+            },
+            tooltip=GeoJsonTooltip(
+                fields=["NAME", "STATE"],
+                aliases=["County", "State"],
+                localize=True
+            )
+        ).add_to(m)
 
-        colormap.add_to(m)
-        st_data = st_folium(m, width=1000, height=650)
+    colormap.add_to(m)
+    st_data = st_folium(m, width=1000, height=650)
 
-        if st_data and st_data.get("last_active_drawing"):
-            props = st_data["last_active_drawing"]["properties"]
-            st.subheader(f"📍 {props['NAME']}, {props['STATE']}")
-            st.write(f"**Custom Average**: {props['custom_avg']:.2f}")
+    if st_data and st_data.get("last_active_drawing"):
+        props = st_data["last_active_drawing"]["properties"]
+        st.subheader(f"📍 {props['NAME']}, {props['STATE']}")
+        st.write(f"**Custom Average**: {props['custom_avg']:.2f}")
 
 
 elif page == "Weighted Score Map (Profitability vs. Environment)":
