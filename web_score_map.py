@@ -182,12 +182,12 @@ if page == "About":
     - Wind Speed
     - Dustiness (Whether Tolerable to Light Pollution)
     
-    Among all the variables, we identified four core variables, which are ***carbon footprint, water footprint, population density, and shrub proportion***.
+    Among all the variables, we identified four core variables, which are ***carbon footprint, water footprint, population density, and forest proportion***.
                 
     You can:
     - Explore pre-computed overall score (16 variables) and core score (4 core variables) for each county.
     - Customize your own weighted averages for each county using selected variables.
-    - Map weighted/unweighted average of Random Forest predicted profitability and environmental suitability.""")
+    - Tune the weight between environment and profitability scores (Random Forest-predicted) — and watch the map adapt in real time!""")
 
 if page == "Map by Overall Score":
     # 创建 Folium 地图
