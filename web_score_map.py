@@ -143,6 +143,7 @@ def load_data():
 
     fips_df["GEOID"] = fips_df["STATEFP"] + fips_df["COUNTYFP"]
     fips_df = fips_df[["GEOID", "COUNTYNAME"]].rename(columns={"COUNTYNAME": "NAME"})
+    fips_df["NAME"] = fips_df["NAME"].str.replace(r"\s.*", "", regex=True)
 
     counties = counties.merge(fips_df, on="GEOID", how="left")
 
@@ -296,8 +297,15 @@ elif page == "Map by Four Core Variables Score":
         # 🔍 添加可选县用于高亮显示
     available_counties = map_df[map_df["four_SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
+    
+    display_names = (
+    available_counties["display_name"]
+    .fillna("Unknown County, Unknown State")
+    .astype(str)
+    .tolist()
+    )
 
-    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist()), key = "highlight_4_core")
+    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(display_names), key = "highlight_4_core")
 
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
