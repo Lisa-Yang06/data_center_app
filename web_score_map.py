@@ -398,7 +398,7 @@ elif page == "Custom Variable Average":
         
     else:
         map_df["custom_avg"] = map_df["SUM"]
-        colormap = cm.linear.OrRd_09.scale(map_df["SUM"].min(), map_df["SUM"].max())
+        colormap = cm.linear.YlGn_09.scale(map_df["SUM"].min(), map_df["SUM"].max())
         colormap.caption = "Default Score"
 
     m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
