@@ -227,7 +227,7 @@ if page == "Map by Overall Score":
     
     selected_county = st.selectbox(
         "🔍 Highlight a County",
-        ["None"] + sorted(available_counties["display_name"]),
+        ["None"] + sorted(available_counties["display_name"].tolist()),
         key="highlight_overall"
     )
 
@@ -296,7 +296,7 @@ elif page == "Map by Four Core Variables Score":
     available_counties = map_df[map_df["SUM"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
 
-    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"]), key = "highlight_4_core")
+    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist()), key = "highlight_4_core")
 
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
@@ -359,7 +359,7 @@ elif page == "Custom Variable Average":
     with col1:
         selected_keys = st.multiselect("📊 Select variables to calculate average", numeric_cols)
     with col2:
-        selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"]), key="highlight_customized")
+        selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist()), key="highlight_customized")
 
     generate = st.button("Generate Customized Map")
     reset = st.button("Reset Map")
@@ -485,7 +485,7 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
     available_counties = map_weight[map_weight["weighted_score"].notna()][["NAME", "STATE", "GEOID"]].drop_duplicates()
     available_counties["display_name"] = available_counties["NAME"] + ", " + available_counties["STATE"]
 
-    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"]), key="highlight_weighted")
+    selected_county = st.selectbox("🔍 Highlight a County", ["None"] + sorted(available_counties["display_name"].tolist), key="highlight_weighted")
 
     if selected_county != "None":
         selected_geoid = available_counties[available_counties["display_name"] == selected_county]["GEOID"].values[0]
