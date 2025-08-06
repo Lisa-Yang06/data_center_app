@@ -168,7 +168,7 @@ page = st.sidebar.radio("Navigation", ["About",
                                         "Custom Variable Average",
                                         "Weighted Score Map (Profitability vs. Environment)"])
 if page == "About":
-    st.title("About this Dashboard")
+    st.subheader("About this Dashboard")
     st.markdown("""
     Welcome to the **Data Center Environmental Suitability Dashboard**.
                 
@@ -187,7 +187,7 @@ if page == "About":
     You can:
     - Explore pre-computed overall score (16 variables) and core score (4 core variables) for each county.
     - Customize your own weighted averages for each county using selected variables.
-                """)
+    - Map weighted/unweighted average of Random Forest predicted profitability and environmental suitability.""")
 
 if page == "Map by Overall Score":
     # 创建 Folium 地图
@@ -339,6 +339,7 @@ elif page == "Map by Four Core Variables Score":
 elif page == "Custom Variable Average":
     if "custom_map_generated" not in st.session_state:
         st.session_state.custom_map_generated = False
+        st.session_state.selected_var = None
 
     ui_var_dict = {
         "Temperature": "Normal_temp",
@@ -381,36 +382,47 @@ elif page == "Custom Variable Average":
 
     if reset:
         st.session_state.custom_map_generated = False
+        st.session_state.selected_var = None
 
     if selected_keys and generate:
         st.session_state.custom_map_generated = True
         st.session_state.selected_var = [ui_var_dict[var] for var in selected_keys]
 
+
+
     if st.session_state.custom_map_generated:
         selected_var = st.session_state.selected_var
         map_df["custom_avg"] = map_df[selected_var].mean(axis=1, skipna=True)
-        m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
-
         colormap = cm.linear.YlGn_09.scale(map_df["custom_avg"].min(), map_df["custom_avg"].max())
         colormap.caption = "Average of Selected Variables"
+        
+    else:
+        map_df["custom_avg"] = map_df["SUM"]
+        colormap = cm.linear.OrRd_09.scale(map_df["SUM"].min(), map_df["SUM"].max())
+        colormap.caption = "Default Score"
 
-        tooltip = GeoJsonTooltip(
-            fields=["NAME", "STATE", "custom_avg"],
-            aliases=["County", "State", "Average"],
-            localize=True
-        )
+    m = folium.Map(location=[39.5, -98.35], zoom_start=4, tiles="CartoDB positron")
 
-        folium.GeoJson(
-            map_df,
-            name="Custom Avg",
-            tooltip=tooltip,
-            style_function=lambda feature: {
-                "fillColor": colormap(feature["properties"]["custom_avg"]) if feature["properties"]["custom_avg"] is not None else "#cccccc",
-                "color": "black",
-                "weight": 0.2,
-                "fillOpacity": 0.6,
-            }
-        ).add_to(m)
+    tooltip = GeoJsonTooltip(
+        fields=["NAME", "STATE", "custom_avg"],
+        aliases=["County", "State", "Average"],
+        localize=True
+    )
+
+    folium.GeoJson(
+        map_df,
+        name="Custom Avg",
+        tooltip=tooltip,
+        style_function=lambda feature: {
+            "fillColor": colormap(feature["properties"]["custom_avg"]) if feature["properties"]["custom_avg"] is not None else "#cccccc",
+            "color": "black",
+            "weight": 0.2,
+            "fillOpacity": 0.6,
+        }
+    ).add_to(m)
+    colormap.add_to(m)
+    st_data = st_folium(m, width=1000, height=650)
+        
 
         # ➕ 高亮县的边界
         if selected_county != "None":
@@ -456,14 +468,23 @@ elif page == "Weighted Score Map (Profitability vs. Environment)":
 
         merged = env_df.merge(prof_df, on="GEOID", how="inner")
         return merged
-
+    if "custom_weight" not in st.session_state:
+        st.session_state.custom_weight = False
+        
+    if "env_weight" not in st.session_state:
+        st.session_state.env_weight = 0.5 
+        
     score_df = load_weighted_data()
 
     # 合并到原始地图 dataframe
     map_weight = map_df.merge(score_df, on="GEOID", how="left")
 
     # 滑块选择权重
-    env_weight = st.slider("🧮 Environmental Weight (Profitability = 1 - Environmental)", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+    env_weight = st.slider("🧮 Environmental Weight (Profitability = 1 - Environmental)", min_value=0.0, max_value=1.0, value=st.session_state.env_weight, step=0.01)
+    if env_weight != st.session_state.env_weight:
+        st.session_state.env_weight = env_weight
+        st.session_state.custom_weight = True
+    
     map_weight["weighted_score"] = env_weight * map_weight["env_score"] + (1 - env_weight) * map_weight["prof_score"]
 
     # 绘制地图
