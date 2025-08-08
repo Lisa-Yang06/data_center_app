@@ -182,7 +182,7 @@ if page == "About":
                 
     You can:
     - Explore pre-computed overall score (16 variables) and core score (4 core variables) for each county.
-    - Customize your own weighted averages for each county using selected variables.
+    - Customize your own averages for each county using selected variables.
     - Tune the weight between environment and profitability scores (Random Forest-predicted) — and watch the map adapt in real time!""")
 
 if page == "Map by Overall Score":
